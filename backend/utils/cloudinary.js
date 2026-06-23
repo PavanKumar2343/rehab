@@ -10,7 +10,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: 'rehabitat',
+    folder: 'faunarescue',
     allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
     transformation: [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto' }]
   }
@@ -19,7 +19,7 @@ const storage = new CloudinaryStorage({
 const uploadToCloudinary = async (filePath) => {
   try {
     const result = await cloudinary.uploader.upload(filePath, {
-      folder: 'rehabitat',
+      folder: 'faunarescue',
       transformation: [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto' }]
     });
     return result.secure_url;

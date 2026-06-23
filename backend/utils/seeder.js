@@ -33,7 +33,7 @@ const seedData = async () => {
     // 1. Create Users (User, Shelter Owner, Admin)
     const adminUser = await User.create({
       name: 'Global Administrator',
-      email: 'admin@rehabitat.org',
+      email: 'admin@faunarescue.org',
       password: 'password123',
       phone: '+1 (555) 019-2834',
       role: 'admin'

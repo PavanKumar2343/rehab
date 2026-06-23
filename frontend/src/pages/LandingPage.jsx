@@ -78,7 +78,7 @@ const LandingPage = () => {
 
       {/* Mission Statement */}
       <section style={{ padding: '60px 24px', maxWidth: '1100px', width: '100%', margin: '0 auto' }}>
-        <h2 style={{ textAlign: 'center', fontSize: '2rem', marginBottom: '40px', fontFamily: 'var(--font-display)' }}>How Rehabitat Works</h2>
+        <h2 style={{ textAlign: 'center', fontSize: '2rem', marginBottom: '40px', fontFamily: 'var(--font-display)' }}>How FaunaHub Works</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
           <div className="glass-panel" style={{ padding: '24px' }}>
             <div style={{ width: '44px', height: '44px', borderRadius: '10px', backgroundColor: 'rgba(245, 158, 11, 0.1)', display: 'flex', alignItems: 'center', justifyItems: 'center', color: '#f59e0b', justifyContent: 'center', marginBottom: '16px' }}>

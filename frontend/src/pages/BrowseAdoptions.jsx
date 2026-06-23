@@ -175,7 +175,7 @@ const BrowseAdoptions = () => {
 
                 <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    Sanctuary: <strong style={{ color: 'white' }}>{animal.assignedShelter?.shelterName || 'Rehabitat Clinic'}</strong>
+                    Sanctuary: <strong style={{ color: 'white' }}>{animal.assignedShelter?.shelterName || 'Fauna Clinic'}</strong>
                   </div>
                   
                   <button
