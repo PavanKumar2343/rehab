@@ -67,7 +67,7 @@ const BrowseAdoptions = () => {
       const res = await authFetch('/api/adoptions', {
         method: 'POST',
         body: JSON.stringify({
-          animalId: selectedAnimal._id,
+          animalId: selectedAnimal.id,
           message,
           contactPhone
         })
@@ -145,7 +145,7 @@ const BrowseAdoptions = () => {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
           {animals.map(animal => (
-            <div key={animal._id} className="glass-panel glass-panel-interactive" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div key={animal.id} className="glass-panel glass-panel-interactive" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               
               <div style={{ height: '200px', backgroundColor: '#0f172a', overflow: 'hidden', position: 'relative' }}>
                 {animal.photos && animal.photos.length > 0 ? (

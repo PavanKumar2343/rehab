@@ -226,10 +226,10 @@ const UserDashboard = () => {
               ) : (
                 reports.map(report => (
                   <div
-                    key={report._id}
+                    key={report.id}
                     className="glass-panel glass-panel-interactive"
-                    onClick={() => handleViewRescueDetails(report._id)}
-                    style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', borderLeft: selectedRescue?.animalId?._id === report._id ? '4px solid var(--primary)' : '1px solid var(--border-color)' }}
+                    onClick={() => handleViewRescueDetails(report.id)}
+                    style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', borderLeft: selectedRescue?.animalId?.id === report.id ? '4px solid var(--primary)' : '1px solid var(--border-color)' }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
                       <div>
@@ -424,7 +424,7 @@ const UserDashboard = () => {
                 </div>
               ) : (
                 adoptions.map(adopt => (
-                  <div key={adopt._id} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div key={adopt.id} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
                         <h4 style={{ color: 'white', fontSize: '1.05rem' }}>{adopt.animalId?.category || 'Animal'} Proposal</h4>

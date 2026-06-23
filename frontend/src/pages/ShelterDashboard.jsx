@@ -99,7 +99,7 @@ const ShelterDashboard = () => {
     }
 
     try {
-      const res = await authFetch(`/api/rescues/${selectedRescueForUpdate._id}/status`, {
+      const res = await authFetch(`/api/rescues/${selectedRescueForUpdate.id}/status`, {
         method: 'PUT',
         body: formData
       });
@@ -245,7 +245,7 @@ const ShelterDashboard = () => {
                 </div>
               ) : (
                 incomingRescues.map(req => (
-                  <div key={req._id} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div key={req.id} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
                       <div>
                         <h4 style={{ color: 'white', fontSize: '1.1rem' }}>{req.animalId?.category} Reported</h4>
@@ -274,14 +274,14 @@ const ShelterDashboard = () => {
 
                     <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
                       <button
-                        onClick={() => handleAcceptRescue(req._id)}
+                        onClick={() => handleAcceptRescue(req.id)}
                         className="btn btn-primary"
                         style={{ padding: '8px 16px', fontSize: '0.8rem', gap: '4px' }}
                       >
                         <Check size={14} /> Accept Rescue
                       </button>
                       <button
-                        onClick={() => handleRejectRescue(req._id)}
+                        onClick={() => handleRejectRescue(req.id)}
                         className="btn btn-secondary"
                         style={{ padding: '8px 16px', fontSize: '0.8rem', gap: '4px' }}
                       >
@@ -358,7 +358,7 @@ const ShelterDashboard = () => {
                 </div>
               ) : (
                 activeRescues.map(rescue => (
-                  <div key={rescue._id} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div key={rescue.id} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
                         <h4 style={{ color: 'white', fontSize: '1.05rem' }}>{rescue.animalId?.category} Assignment</h4>
@@ -390,7 +390,7 @@ const ShelterDashboard = () => {
                             <img
                               src={log.photo}
                               alt={`Progress ${idx + 1}`}
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              style={{ width: '100%', height: '100px', objectFit: 'cover' }}
                             />
                           </div>
                         ))}
@@ -426,12 +426,12 @@ const ShelterDashboard = () => {
                 </div>
               ) : (
                 adoptionRequests.map(app => (
-                  <div key={app._id} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div key={app.id} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
                         <h4 style={{ color: 'white', fontSize: '1.05rem' }}>Application for {app.animalId?.category || 'Animal'}</h4>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          Case ID: ...{app.animalId?._id.slice(-6)}
+                          Case ID: ...{app.animalId?.id.slice(-6)}
                         </span>
                       </div>
                       <span style={{
@@ -469,14 +469,14 @@ const ShelterDashboard = () => {
                       {app.status === 'Pending' && (
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <button
-                            onClick={() => handleUpdateAdoption(app._id, 'Approved')}
+                            onClick={() => handleUpdateAdoption(app.id, 'Approved')}
                             className="btn btn-primary"
                             style={{ padding: '6px 12px', fontSize: '0.75rem' }}
                           >
                             Approve
                           </button>
                           <button
-                            onClick={() => handleUpdateAdoption(app._id, 'Rejected')}
+                            onClick={() => handleUpdateAdoption(app.id, 'Rejected')}
                             className="btn btn-secondary"
                             style={{ padding: '6px 12px', fontSize: '0.75rem' }}
                           >
