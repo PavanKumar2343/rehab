@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import MetricCard from '../components/MetricCard';
 import InteractiveMap from '../components/InteractiveMap';
-import { Activity, ShieldCheck, Heart, User, Check, X, FileText, Upload, Clock, Bell, MapPin, BarChart2, Plus } from 'lucide-react';
+import { Activity, ShieldCheck, Heart, User, Check, X, FileText, Upload, Clock, Bell, MapPin, BarChart2, Plus, Smile } from 'lucide-react';
 
 const ShelterDashboard = () => {
   const { user, authFetch } = useAuth();
@@ -620,7 +620,8 @@ const ShelterDashboard = () => {
                       borderRadius: '8px',
                       textAlign: 'center',
                       cursor: 'pointer',
-                      backgroundColor: 'var(--bg-input)'
+                      backgroundColor: 'var(--bg-input)',
+                      position: 'relative' // Add this to contain absolute positioned input
                     }}
                     className="notif-item-hover"
                   >
