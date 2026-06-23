@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import MetricCard from '../components/MetricCard';
 import InteractiveMap from '../components/InteractiveMap';
-import { Activity, ShieldCheck, Heart, User, Check, X, FileText, Upload, Clock, Bell, MapPin, BarChart2 } from 'lucide-react';
+import { Activity, ShieldCheck, Heart, User, Check, X, FileText, Upload, Clock, Bell, MapPin, BarChart2, Plus } from 'lucide-react';
 
 const ShelterDashboard = () => {
   const { user, authFetch } = useAuth();
   
-  // Tabs: 'incoming' | 'active' | 'adoptions' | 'analytics'
+  // Tabs: 'incoming' | 'active' | 'adoptions' | 'analytics' | 'upload'
   const [activeTab, setActiveTab] = useState('incoming');
   const [incomingRescues, setIncomingRescues] = useState([]);
   const [activeRescues, setActiveRescues] = useState([]);
@@ -20,6 +20,15 @@ const ShelterDashboard = () => {
   const [remarks, setRemarks] = useState('');
   const [progressPhoto, setProgressPhoto] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  // Upload animal states
+  const [uploadCategory, setUploadCategory] = useState('Dog');
+  const [uploadName, setUploadName] = useState('');
+  const [uploadDescription, setUploadDescription] = useState('');
+  const [uploadAge, setUploadAge] = useState('');
+  const [uploadGender, setUploadGender] = useState('');
+  const [uploadPhotos, setUploadPhotos] = useState([]);
+  const [uploadingAnimal, setUploadingAnimal] = useState(false);
 
   const fetchShelterData = async () => {
     if (!user || user.role !== 'shelter' || user.shelter?.status !== 'Approved') {
@@ -139,6 +148,45 @@ const ShelterDashboard = () => {
     }
   };
 
+  const handleAnimalUpload = async (e) => {
+    e.preventDefault();
+    setUploadingAnimal(true);
+
+    const formData = new FormData();
+    formData.append('category', uploadCategory);
+    formData.append('description', uploadDescription);
+    formData.append('name', uploadName);
+    formData.append('age', uploadAge);
+    formData.append('gender', uploadGender);
+    uploadPhotos.forEach(photo => {
+      formData.append('photos', photo);
+    });
+
+    try {
+      const res = await authFetch('/api/animals/upload-for-adoption', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Animal uploaded successfully for adoption!');
+        // Reset form
+        setUploadCategory('Dog');
+        setUploadName('');
+        setUploadDescription('');
+        setUploadAge('');
+        setUploadGender('');
+        setUploadPhotos([]);
+      } else {
+        alert(data.message || 'Error uploading animal');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUploadingAnimal(false);
+    }
+  };
+
   // If user registered as a shelter but has not been verified by Admin
   if (user?.role === 'shelter' && user?.shelter?.status !== 'Approved') {
     return (
@@ -191,8 +239,8 @@ const ShelterDashboard = () => {
         </div>
         
         {/* Toggle selectors */}
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {['incoming', 'active', 'adoptions', 'analytics'].map(tab => (
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {['incoming', 'active', 'adoptions', 'upload', 'analytics'].map(tab => (
             <button
               key={tab}
               onClick={() => { setActiveTab(tab); setSelectedRescueForUpdate(null); }}
@@ -205,17 +253,17 @@ const ShelterDashboard = () => {
                 border: '1px solid var(--border-color)'
               }}
             >
-              {tab === 'adoptions' ? 'Adoption Requests' : tab === 'incoming' ? `Incoming Requests (${incomingRescues.length})` : tab}
+              {tab === 'adoptions' ? 'Adoption Requests' : tab === 'incoming' ? `Incoming Requests (${incomingRescues.length})` : tab === 'upload' ? 'Upload Animal' : tab}
             </button>
           ))}
         </div>
       </div>
 
       {/* Grid panels */}
-      <div style={{ display: 'grid', gridTemplateColumns: activeTab === 'analytics' ? '1fr' : '1fr 1fr', gap: '24px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: (activeTab === 'analytics' || activeTab === 'upload') ? '1fr' : '1fr 1fr', gap: '24px', alignItems: 'start' }}>
         
-        {/* LEFT COLUMN: Map rendering (hides on analytics) */}
-        {activeTab !== 'analytics' && (
+        {/* LEFT COLUMN: Map rendering (hides on analytics and upload) */}
+        {activeTab !== 'analytics' && activeTab !== 'upload' && (
           <div className="glass-panel" style={{ padding: '20px', position: 'sticky', top: '90px' }}>
             <h3 style={{ fontSize: '1.1rem', color: 'white', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <MapPin size={16} /> Location Navigation Map
@@ -488,6 +536,139 @@ const ShelterDashboard = () => {
                   </div>
                 ))
               )}
+            </div>
+          )}
+
+          {/* TAB: Upload Animal for Adoption */}
+          {activeTab === 'upload' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <h3 style={{ fontSize: '1.2rem', color: 'white', marginBottom: '4px' }}>Upload Animal for Adoption</h3>
+
+              <form onSubmit={handleAnimalUpload} className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label className="form-label">Animal Category</label>
+                    <select
+                      value={uploadCategory}
+                      onChange={(e) => setUploadCategory(e.target.value)}
+                      className="form-input"
+                      required
+                    >
+                      <option value="Dog">Dog</option>
+                      <option value="Cat">Cat</option>
+                      <option value="Bird">Bird</option>
+                      <option value="Rabbit">Rabbit</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">Animal Name</label>
+                    <input
+                      type="text"
+                      value={uploadName}
+                      onChange={(e) => setUploadName(e.target.value)}
+                      className="form-input"
+                      placeholder="e.g. Max"
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label className="form-label">Age</label>
+                    <input
+                      type="text"
+                      value={uploadAge}
+                      onChange={(e) => setUploadAge(e.target.value)}
+                      className="form-input"
+                      placeholder="e.g. 2 years"
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">Gender</label>
+                    <select
+                      value={uploadGender}
+                      onChange={(e) => setUploadGender(e.target.value)}
+                      className="form-input"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Unknown">Unknown</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="form-label">Description</label>
+                  <textarea
+                    value={uploadDescription}
+                    onChange={(e) => setUploadDescription(e.target.value)}
+                    className="form-input"
+                    rows={4}
+                    placeholder="Describe the animal, its personality, and any special needs..."
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Upload Photos (up to 5)</label>
+                  <div
+                    style={{
+                      padding: '20px',
+                      border: '2px dashed var(--border-color)',
+                      borderRadius: '8px',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      backgroundColor: 'var(--bg-input)'
+                    }}
+                    className="notif-item-hover"
+                  >
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) => setUploadPhotos(Array.from(e.target.files || []))}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        opacity: 0,
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <Upload size={32} style={{ color: 'var(--primary)', marginBottom: '8px' }} />
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      {uploadPhotos.length > 0 ? `${uploadPhotos.length} photo(s) selected` : 'Click or drag images to upload'}
+                    </p>
+                  </div>
+
+                  {uploadPhotos.length > 0 && (
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
+                      {Array.from(uploadPhotos).map((file, idx) => (
+                        <div key={idx} style={{ width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden' }}>
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview ${idx + 1}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={uploadingAnimal}
+                  className="btn btn-primary"
+                  style={{ width: 'fit-content' }}
+                >
+                  {uploadingAnimal ? 'Uploading...' : 'Upload Animal for Adoption'}
+                </button>
+              </form>
             </div>
           )}
 

@@ -78,7 +78,7 @@ const LandingPage = () => {
 
       {/* Mission Statement */}
       <section style={{ padding: '60px 24px', maxWidth: '1100px', width: '100%', margin: '0 auto' }}>
-        <h2 style={{ textAlign: 'center', fontSize: '2rem', marginBottom: '40px', fontFamily: 'var(--font-display)' }}>How FaunaRescue Works</h2>
+        <h2 style={{ textAlign: 'center', fontSize: '2rem', marginBottom: '40px', fontFamily: 'var(--font-display)' }}>How FaunaHub Works</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
           <div className="glass-panel" style={{ padding: '24px' }}>
             <div style={{ width: '44px', height: '44px', borderRadius: '10px', backgroundColor: 'rgba(245, 158, 11, 0.1)', display: 'flex', alignItems: 'center', justifyItems: 'center', color: '#f59e0b', justifyContent: 'center', marginBottom: '16px' }}>
@@ -131,7 +131,7 @@ const LandingPage = () => {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
             {gallery.map(animal => (
-              <div key={animal._id} className="glass-panel glass-panel-interactive" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <div key={animal.id} className="glass-panel glass-panel-interactive" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ height: '220px', overflow: 'hidden', position: 'relative', backgroundColor: '#0f172a' }}>
                   {animal.photos && animal.photos.length > 0 ? (
                     <img

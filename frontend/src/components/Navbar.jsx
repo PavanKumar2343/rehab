@@ -12,7 +12,7 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const handleNotificationClick = async (notif) => {
-    await markAsRead(notif._id);
+    await markAsRead(notif.id);
     setShowNotifications(false);
     
     // Redirect based on notification relation if applicable
@@ -42,7 +42,7 @@ const Navbar = () => {
         {/* Brand Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: 'white' }}>
           <span style={{ fontSize: '1.4rem', fontWeight: '800', fontFamily: 'var(--font-display)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            🐾 FaunaRescue
+            🐾 FaunaHub
           </span>
         </Link>
 

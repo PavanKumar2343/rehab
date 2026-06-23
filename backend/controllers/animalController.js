@@ -231,3 +231,50 @@ exports.getMyReports = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.uploadAnimalForAdoption = async (req, res) => {
+  try {
+    const { category, description, age, gender, name } = req.body;
+
+    if (!category || !description) {
+      return res.status(400).json({ success: false, message: 'Please provide category and description' });
+    }
+
+    const photos = [];
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        photos.push(file.path || `/uploads/${file.filename}`);
+      });
+    }
+
+    // Get the shelter associated with the current user
+    const shelters = await queryDocs(collections.shelters, 'userId', '==', req.user.id);
+    if (shelters.length === 0) {
+      return res.status(400).json({ success: false, message: 'No shelter found for this user' });
+    }
+    const shelter = shelters[0];
+
+    const animalData = {
+      category,
+      description,
+      name: name || category,
+      age: age || null,
+      gender: gender || null,
+      healthStatus: 'Available For Adoption',
+      photos,
+      location: shelter.location,
+      reportedBy: req.user.id,
+      assignedShelter: shelter.id,
+      createdAt: new Date().toISOString()
+    };
+    const animalRef = await collections.animals.add(animalData);
+
+    res.status(201).json({
+      success: true,
+      data: { id: animalRef.id, ...animalData }
+    });
+  } catch (error) {
+    console.error('Error uploading animal:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

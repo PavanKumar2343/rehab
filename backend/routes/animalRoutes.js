@@ -5,12 +5,14 @@ const {
   getAnimals,
   getAdoptableAnimals,
   getAnimalById,
-  getMyReports
+  getMyReports,
+  uploadAnimalForAdoption
 } = require('../controllers/animalController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 
 router.post('/report', protect, upload.array('photos', 5), reportAnimal);
+router.post('/upload-for-adoption', protect, upload.array('photos', 5), uploadAnimalForAdoption);
 router.get('/', getAnimals);
 router.get('/adoptable', getAdoptableAnimals);
 router.get('/my-reports', protect, getMyReports);

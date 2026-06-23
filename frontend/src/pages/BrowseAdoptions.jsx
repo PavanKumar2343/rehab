@@ -167,7 +167,7 @@ const BrowseAdoptions = () => {
 
               <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: '1', justifyContent: 'space-between', gap: '16px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Case ID: ...{animal._id.slice(-6)}</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Case ID: ...{animal.id.slice(-6)}</span>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: '-webkit-box', WebkitLineClamp: '3', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {animal.description}
                   </p>
@@ -214,7 +214,7 @@ const BrowseAdoptions = () => {
               <div>
                 <h3 style={{ fontSize: '1.4rem', color: 'white' }}>Apply to Adopt</h3>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Request for {selectedAnimal.category} (ID: ...{selectedAnimal._id.slice(-6)})
+                  Request for {selectedAnimal.category} (ID: ...{selectedAnimal.id.slice(-6)})
                 </span>
               </div>
               <button
