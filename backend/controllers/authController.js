@@ -342,6 +342,95 @@ exports.getMe = async (req, res) => {
   }
 };
 
+exports.googleAuth = async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({ success: false, message: 'ID token is required' });
+    }
+
+    const decodedToken = await firebaseAuth.verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+    const email = decodedToken.email;
+    const name = decodedToken.name || email.split('@')[0];
+    const profilePhoto = decodedToken.picture || '';
+
+    // Check if user already exists
+    const existingUsers = await queryDocs(collections.users, 'firebaseUid', '==', uid);
+    
+    let user;
+    if (existingUsers.length > 0) {
+      // Existing user
+      user = existingUsers[0];
+    } else {
+      // Check if user exists with email
+      const usersByEmail = await queryDocs(collections.users, 'email', '==', email);
+      if (usersByEmail.length > 0) {
+        // Update existing user with firebaseUid
+        user = usersByEmail[0];
+        await collections.users.doc(user.id).update({ 
+          firebaseUid: uid,
+          profilePhoto: profilePhoto || user.profilePhoto
+        });
+      } else {
+        // Create new user as regular user
+        const userData = {
+          name,
+          email,
+          phone: '',
+          role: 'user',
+          profilePhoto,
+          firebaseUid: uid,
+          createdAt: new Date().toISOString()
+        };
+        await collections.users.doc(uid).set(userData);
+        user = { id: uid, ...userData };
+      }
+    }
+
+    // Get role data
+    let roleData = {};
+    if (user.role === 'shelter') {
+      const shelters = await queryDocs(collections.shelters, 'userId', '==', user.id);
+      if (shelters.length > 0) {
+        const shelter = shelters[0];
+        roleData.shelter = {
+          id: shelter.id,
+          shelterName: shelter.shelterName,
+          licenseNumber: shelter.licenseNumber,
+          address: shelter.address,
+          coordinates: shelter.location?.coordinates,
+          status: shelter.status,
+          radiusPreferenceKm: shelter.radiusPreferenceKm
+        };
+      }
+    } else if (user.role === 'admin') {
+      const admins = await queryDocs(collections.admins, 'userId', '==', user.id);
+      if (admins.length > 0) {
+        roleData.adminCode = admins[0].adminCode;
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      token: idToken,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        profilePhoto: user.profilePhoto || '',
+        ...roleData
+      }
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 exports.updateProfile = async (req, res) => {
   try {
     const { name, phone, shelterName, address, radiusPreferenceKm } = req.body;

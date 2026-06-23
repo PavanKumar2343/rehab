@@ -42,7 +42,7 @@ const Navbar = () => {
         {/* Brand Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: 'white' }}>
           <span style={{ fontSize: '1.4rem', fontWeight: '800', fontFamily: 'var(--font-display)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            🐾 FaunaHub
+            🐾 Rehabitat
           </span>
         </Link>
 

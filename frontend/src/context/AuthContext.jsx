@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { auth, googleProvider, signInWithPopup } from '../config/firebase';
 
 const AuthContext = createContext(null);
 
@@ -101,6 +102,41 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        localStorage.setItem('token', data.token);
+        setToken(data.token);
+        setUser(data.user);
+        
+        // Redirect based on role
+        if (data.user.role === 'admin') {
+          navigate('/admin-dashboard');
+        } else if (data.user.role === 'shelter') {
+          navigate('/shelter-dashboard');
+        } else {
+          navigate('/user-dashboard');
+        }
+        return { success: true };
+      } else {
+        return { success: false, message: data.message };
+      }
+    } catch (err) {
+      console.error('Google login error:', err);
+      return { success: false, message: 'Google sign in failed' };
+    }
+  };
+
   const register = async (name, email, password, phone) => {
     try {
       const res = await fetch('/api/auth/register', {
@@ -193,7 +229,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, authFetch, login, register, registerShelter, registerAdmin, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, token, loading, authFetch, login, googleLogin, register, registerShelter, registerAdmin, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );
