@@ -7,29 +7,63 @@ import { Activity, ShieldCheck, Heart, User, Check, X, FileText, Upload, Clock, 
 const ShelterDashboard = () => {
   const { user, authFetch } = useAuth();
   
-  // Tabs: 'incoming' | 'active' | 'adoptions' | 'analytics' | 'upload'
+  // In-app popup (replaces window.alert)
+  const [popup, setPopup] = useState({ open: false, title: '', message: '', kind: 'success' });
+
+  // State variables
   const [activeTab, setActiveTab] = useState('incoming');
+  const [loading, setLoading] = useState(true);
   const [incomingRescues, setIncomingRescues] = useState([]);
   const [activeRescues, setActiveRescues] = useState([]);
   const [adoptionRequests, setAdoptionRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Status updates states
   const [selectedRescueForUpdate, setSelectedRescueForUpdate] = useState(null);
-  const [newStatus, setNewStatus] = useState('Rescue Accepted');
+  const [newStatus, setNewStatus] = useState('');
   const [remarks, setRemarks] = useState('');
   const [progressPhoto, setProgressPhoto] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
-
-  // Upload animal states
   const [uploadCategory, setUploadCategory] = useState('Dog');
   const [uploadName, setUploadName] = useState('');
-  const [uploadDescription, setUploadDescription] = useState('');
   const [uploadAge, setUploadAge] = useState('');
   const [uploadGender, setUploadGender] = useState('');
+  const [uploadDescription, setUploadDescription] = useState('');
   const [uploadPhotos, setUploadPhotos] = useState([]);
   const [uploadingAnimal, setUploadingAnimal] = useState(false);
 
+  const closePopup = () => setPopup(p => ({ ...p, open: false }));
+
+  const showPopup = ({ title, message, kind = 'success' }) => {
+    setPopup({ open: true, title, message, kind });
+  };
+
+  // Wrapper to normalize authFetch responses and surface network/server errors
+  const safeAuthFetch = async (path, options = {}) => {
+    try {
+      const res = await authFetch(path, options);
+      // If authFetch already returned parsed JSON, return it directly
+      if (res && typeof res === 'object' && typeof res.ok === 'undefined' && ('success' in res || 'data' in res)) {
+        return res;
+      }
+      // If we have a Response object
+      if (res && typeof res.ok !== 'undefined') {
+        const text = await res.text().catch(() => '');
+        let json = null;
+        try { json = text ? JSON.parse(text) : null; } catch (e) { json = null; }
+        if (!res.ok) {
+          const message = (json && json.message) || text || `Server error (${res.status})`;
+          showPopup({ title: 'Server Error', message, kind: 'error' });
+          throw new Error(message);
+        }
+        return json ?? {};
+      }
+      // Unknown return - just return as-is
+      return res;
+    } catch (err) {
+      const msg = err?.message?.includes('Failed to fetch') ? 'Unable to connect to server. Check network or server status.' : (err.message || 'Network error');
+      showPopup({ title: 'Connection Error', message: msg, kind: 'error' });
+      throw err;
+    }
+  };
+  
   const fetchShelterData = async () => {
     if (!user || user.role !== 'shelter' || user.shelter?.status !== 'Approved') {
       setLoading(false);
@@ -38,25 +72,16 @@ const ShelterDashboard = () => {
     setLoading(true);
     try {
       // 1. Fetch incoming/unassigned matching radius requests
-      const incRes = await authFetch('/api/rescues/incoming');
-      const incData = await incRes.json();
-      if (incData.success) {
-        setIncomingRescues(incData.data);
-      }
-
+      const incData = await safeAuthFetch('/api/rescues/incoming');
+      if (incData?.success) setIncomingRescues(incData.data || []);
+      
       // 2. Fetch active rescues
-      const actRes = await authFetch('/api/rescues/active');
-      const actData = await actRes.json();
-      if (actData.success) {
-        setActiveRescues(actData.data);
-      }
-
+      const actData = await safeAuthFetch('/api/rescues/active');
+      if (actData?.success) setActiveRescues(actData.data || []);
+      
       // 3. Fetch adoption applications
-      const adoptRes = await authFetch('/api/adoptions/shelter');
-      const adoptData = await adoptRes.json();
-      if (adoptData.success) {
-        setAdoptionRequests(adoptData.data);
-      }
+      const adoptData = await safeAuthFetch('/api/adoptions/shelter');
+      if (adoptData?.success) setAdoptionRequests(adoptData.data || []);
     } catch (err) {
       console.error('Error fetching shelter dashboard data:', err);
     } finally {
@@ -70,13 +95,10 @@ const ShelterDashboard = () => {
 
   const handleAcceptRescue = async (rescueId) => {
     try {
-      const res = await authFetch(`/api/rescues/${rescueId}/accept`, { method: 'PUT' });
-      const data = await res.json();
-      if (data.success) {
-        alert('Rescue request accepted. Proceeding to treatment.');
+      const data = await safeAuthFetch(`/api/rescues/${rescueId}/accept`, { method: 'PUT' });
+      if (data?.success) {
+        showPopup({ title: 'Rescue Accepted', message: 'Rescue request accepted. Proceeding to treatment.', kind: 'success' });
         fetchShelterData();
-      } else {
-        alert(data.message || 'Error accepting rescue request');
       }
     } catch (err) {
       console.error(err);
@@ -86,11 +108,8 @@ const ShelterDashboard = () => {
   const handleRejectRescue = async (rescueId) => {
     if (!confirm('Are you sure you want to decline this rescue? This will hide the case from your dashboard.')) return;
     try {
-      const res = await authFetch(`/api/rescues/${rescueId}/reject`, { method: 'PUT' });
-      const data = await res.json();
-      if (data.success) {
-        fetchShelterData();
-      }
+      const data = await safeAuthFetch(`/api/rescues/${rescueId}/reject`, { method: 'PUT' });
+      if (data?.success) fetchShelterData();
     } catch (err) {
       console.error(err);
     }
@@ -108,19 +127,16 @@ const ShelterDashboard = () => {
     }
 
     try {
-      const res = await authFetch(`/api/rescues/${selectedRescueForUpdate.id}/status`, {
+      const data = await safeAuthFetch(`/api/rescues/${selectedRescueForUpdate.id}/status`, {
         method: 'PUT',
         body: formData
       });
-      const data = await res.json();
-      if (data.success) {
-        alert('Rescue status updated successfully.');
+      if (data?.success) {
+        showPopup({ title: 'Success', message: 'Rescue status updated successfully.', kind: 'success' });
         setSelectedRescueForUpdate(null);
         setRemarks('');
         setProgressPhoto(null);
         fetchShelterData();
-      } else {
-        alert(data.message || 'Error updating status');
       }
     } catch (err) {
       console.error(err);
@@ -132,16 +148,14 @@ const ShelterDashboard = () => {
   const handleUpdateAdoption = async (requestId, decision) => {
     if (!confirm(`Are you sure you want to set application status to: ${decision}?`)) return;
     try {
-      const res = await authFetch(`/api/adoptions/${requestId}`, {
+      const data = await safeAuthFetch(`/api/adoptions/${requestId}`, {
         method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: decision })
       });
-      const data = await res.json();
-      if (data.success) {
-        alert(`Application set to ${decision.toLowerCase()} successfully.`);
+      if (data?.success) {
+        showPopup({ title: 'Success', message: `Application set to ${decision.toLowerCase()} successfully.`, kind: 'success' });
         fetchShelterData();
-      } else {
-        alert(data.message || 'Error modifying status');
       }
     } catch (err) {
       console.error(err);
@@ -163,13 +177,12 @@ const ShelterDashboard = () => {
     });
 
     try {
-      const res = await authFetch('/api/animals/upload-for-adoption', {
+      const data = await safeAuthFetch('/api/animals/upload-for-adoption', {
         method: 'POST',
         body: formData
       });
-      const data = await res.json();
-      if (data.success) {
-        alert('Animal uploaded successfully for adoption!');
+      if (data?.success) {
+        showPopup({ title: 'Success', message: 'Animal uploaded successfully for adoption!', kind: 'success' });
         // Reset form
         setUploadCategory('Dog');
         setUploadName('');
@@ -177,8 +190,6 @@ const ShelterDashboard = () => {
         setUploadAge('');
         setUploadGender('');
         setUploadPhotos([]);
-      } else {
-        alert(data.message || 'Error uploading animal');
       }
     } catch (err) {
       console.error(err);
@@ -229,7 +240,54 @@ const ShelterDashboard = () => {
   ];
 
   return (
+    <>
+    {popup.open && (
+      <div
+        role="dialog"
+        aria-modal="true"
+        onClick={closePopup}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.55)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '18px'
+        }}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="glass-panel"
+          style={{
+            width: '100%',
+            maxWidth: '520px',
+            padding: '22px',
+            borderRadius: '14px',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.55)'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+            <div>
+              <h3 style={{ fontSize: '1.1rem', color: 'white', marginBottom: '6px' }}>{popup.title}</h3>
+              <p style={{ color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>{popup.message}</p>
+            </div>
+            <button
+              type="button"
+              onClick={closePopup}
+              className="btn btn-secondary"
+              style={{ padding: '6px 10px', fontSize: '0.8rem' }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
     <div className="animate-fade-in" style={{ padding: '10px 0' }}>
+
       
       {/* Dashboard Stats header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
@@ -558,6 +616,13 @@ const ShelterDashboard = () => {
                       <option value="Cat">Cat</option>
                       <option value="Bird">Bird</option>
                       <option value="Rabbit">Rabbit</option>
+                      <option value="Donkey">Donkey</option>
+                      <option value="Ox">Ox</option>
+                      <option value="Bull">Bull</option>
+                      <option value="Goat">Goat</option>
+                      <option value="Horse">Horse</option>
+                      <option value="Camel">Camel</option>
+                      <option value="Sheep">Sheep</option>
                       <option value="Other">Other</option>
                     </select>
                   </div>
@@ -735,6 +800,7 @@ const ShelterDashboard = () => {
 
       </div>
     </div>
+    </>
   );
 };
 

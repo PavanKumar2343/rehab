@@ -1,6 +1,10 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, googleProvider, signInWithPopup } from '../config/firebase';
+// Import dummy firebase config
+import * as firebaseConfig from '../config/firebase';
+let auth = firebaseConfig.auth;
+let googleProvider = firebaseConfig.googleProvider;
+let signInWithPopup = firebaseConfig.signInWithPopup;
 
 const AuthContext = createContext(null);
 
@@ -104,6 +108,9 @@ export const AuthProvider = ({ children }) => {
 
   const googleLogin = async () => {
     try {
+      if (!signInWithPopup) {
+        return { success: false, message: 'Google sign in not available' };
+      }
       const result = await signInWithPopup(auth, googleProvider);
       const idToken = await result.user.getIdToken();
 

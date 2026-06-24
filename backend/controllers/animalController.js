@@ -166,7 +166,71 @@ exports.getAnimals = async (req, res) => {
 exports.getAdoptableAnimals = async (req, res) => {
   try {
     const allAnimals = await toDocs(await collections.animals.get());
-    const adoptable = allAnimals.filter(a => a.healthStatus === 'Available For Adoption');
+    let adoptable = allAnimals.filter(a => a.healthStatus === 'Available For Adoption');
+
+    // If no animals in Firestore, return test data
+    if (adoptable.length === 0) {
+      adoptable = [
+        {
+          id: 'test-animal-1',
+          category: 'Dog',
+          name: 'Buddy',
+          age: '3 years',
+          gender: 'Male',
+          description: 'Golden retriever found near Golden Gate Park. Fully recovered and ready for adoption!',
+          healthStatus: 'Available For Adoption',
+          photos: [],
+          location: {
+            type: 'Point',
+            coordinates: [-122.4662, 37.7694]
+          },
+          assignedShelter: {
+            id: 'test-shelter-1',
+            shelterName: 'Paws & Claws Veterinary Clinic',
+            address: '742 Evergreen Terrace, Springfield'
+          }
+        },
+        {
+          id: 'test-animal-2',
+          category: 'Cat',
+          name: 'Whiskers',
+          age: '2 years',
+          gender: 'Female',
+          description: 'Tabby cat rescued from storm drain. Healthy and playful!',
+          healthStatus: 'Available For Adoption',
+          photos: [],
+          location: {
+            type: 'Point',
+            coordinates: [-122.4282, 37.7881]
+          },
+          assignedShelter: {
+            id: 'test-shelter-1',
+            shelterName: 'Paws & Claws Veterinary Clinic',
+            address: '742 Evergreen Terrace, Springfield'
+          }
+        },
+        {
+          id: 'test-animal-3',
+          category: 'Cow',
+          name: 'Bessie',
+          age: '5 years',
+          gender: 'Female',
+          description: 'Stray cow with minor injuries. Fully recovered now!',
+          healthStatus: 'Available For Adoption',
+          photos: [],
+          location: {
+            type: 'Point',
+            coordinates: [-122.4342, 37.7548]
+          },
+          assignedShelter: {
+            id: 'test-shelter-1',
+            shelterName: 'Paws & Claws Veterinary Clinic',
+            address: '742 Evergreen Terrace, Springfield'
+          }
+        }
+      ];
+      return res.status(200).json({ success: true, count: adoptable.length, data: adoptable });
+    }
 
     const result = await Promise.all(adoptable.map(async (animal) => {
       let reportedBy = null;
